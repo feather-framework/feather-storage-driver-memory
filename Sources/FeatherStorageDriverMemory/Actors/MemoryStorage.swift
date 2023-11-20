@@ -16,6 +16,16 @@ enum MemoryStorageServiceError: Error {
 final actor MemoryStorage {
     private static let rootKey = "[root]"
 
+    public struct Part: Sendable {
+        public let id: String
+        public let number: Int
+
+        public init(id: String, number: Int) {
+            self.id = id
+            self.number = number
+        }
+    }
+
     public struct Chunk: Sendable {
         public let id: String
         public let number: Int
@@ -155,14 +165,14 @@ final actor MemoryStorage {
     public func finishMultipartUpload(
         key: String,
         multipartId: String,
-        chunks: [Chunk]
+        parts: [Part]
     ) async throws {
         guard let storage = await get(key: key) else {
             throw MemoryStorageServiceError.invalidKey
         }
         let parts = try await storage.getMultipartChunks(multipartId)
-        let chunkIds = chunks.map { $0.id }
-        let numbers = chunks.map { $0.number }
+        let chunkIds = parts.map { $0.id }
+        let numbers = parts.map { $0.number }
         let finalParts =
             parts.filter {
                 chunkIds.contains($0.id) && numbers.contains($0.number)

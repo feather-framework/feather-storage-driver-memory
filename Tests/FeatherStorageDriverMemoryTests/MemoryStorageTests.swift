@@ -121,10 +121,14 @@ final class MemoryStorageTests: XCTestCase {
             buffer: .init(string: "baz")
         )
 
+        let parts: [MemoryStorage.Part] = [chunk1, chunk2, chunk3]
+            .map {
+                .init(id: $0.id, number: $0.number)
+            }
         try await storage.finishMultipartUpload(
             key: key,
             multipartId: multipartId,
-            chunks: [chunk1, chunk2, chunk3]
+            parts: parts
         )
 
         let item = await storage.get(key: key)

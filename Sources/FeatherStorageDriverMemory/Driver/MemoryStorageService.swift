@@ -71,10 +71,10 @@ extension MemoryStorageService: StorageService {
         let lastKey = keys.removeLast()
         let storage = await create(keys.map(String.init))
         await storage.add(key: String(lastKey), value: buffer)
-        await storage.prettyPrint()
+
     }
 
-    public func download(key: String, range: ClosedRange<UInt>?)
+    public func download(key: String, range: ClosedRange<Int>?)
         async throws -> ByteBuffer
     {
         var keys = key.split(separator: "/")
@@ -85,15 +85,15 @@ extension MemoryStorageService: StorageService {
         else {
             throw StorageServiceError.invalidKey
         }
-        //        if let range = range {
-        //            var buffer = buffer
-        //            buffer.moveReaderIndex(to: Int(range.lowerBound))
-        //            let length = Int(range.upperBound - range.lowerBound)
-        //            guard let bytes = buffer.readBytes(length: length) else {
-        //                throw StorageServiceError.invalidResponse
-        //            }
-        //            return .init(bytes: bytes)
-        //        }
+        if let range = range {
+            var buffer = buffer
+            buffer.moveReaderIndex(to: Int(range.lowerBound))
+            let length = Int(range.upperBound - range.lowerBound) + 1
+            guard let bytes = buffer.readBytes(length: length) else {
+                throw StorageServiceError.invalidBuffer
+            }
+            return .init(bytes: bytes)
+        }
         return buffer
     }
 
@@ -148,15 +148,20 @@ extension MemoryStorageService: StorageService {
 
     public func create(key: String) async throws {
         let keys = key.split(separator: "/")
-        let storage = await create(keys.map(String.init))
-        await storage.prettyPrint()
+        _ = await create(keys.map(String.init))
     }
 
     public func createMultipartId(
         key: String
     ) async throws -> String {
-        return ""
-        //        return await memoryStorage.createMultipart()
+        var keys = key.split(separator: "/")
+        let lastKey = keys.removeLast()
+        guard let storage = await find(keys.map(String.init)) else {
+            throw StorageServiceError.invalidKey
+        }
+        let id = await storage.createMultipartUpload(key: String(lastKey))
+
+        return id
     }
 
     public func upload(
@@ -164,35 +169,53 @@ extension MemoryStorageService: StorageService {
         key: String,
         number: Int,
         buffer: ByteBuffer
-    ) async throws -> Multipart.Chunk {
-        return .init(chunkId: "", number: 0)
-        //        return await memoryStorage.uploadChunk(
-        //            multipartId: multipartId,
-        //            key: key,
-        //            number: number,
-        //            buffer: buffer
-        //        )
+    ) async throws -> StorageChunk {
+        var keys = key.split(separator: "/")
+        let lastKey = keys.removeLast()
+        guard let storage = await find(keys.map(String.init)) else {
+            throw StorageServiceError.invalidKey
+        }
+        let chunk = try await storage.addMultipartUploadChunk(
+            key: String(lastKey),
+            multipartId: multipartId,
+            number: number,
+            buffer: buffer
+        )
+
+        return .init(chunkId: chunk.id, number: chunk.number)
     }
 
     public func abort(
         multipartId: String,
         key: String
     ) async throws {
-        //        await memoryStorage.abort(
-        //            multipartId: multipartId,
-        //            key: key
-        //        )
+        var keys = key.split(separator: "/")
+        let lastKey = keys.removeLast()
+        guard let storage = await find(keys.map(String.init)) else {
+            throw StorageServiceError.invalidKey
+        }
+        try await storage.abortMultipartUpload(
+            key: String(lastKey),
+            multipartId: multipartId
+        )
     }
 
     public func finish(
         multipartId: String,
         key: String,
-        chunks: [Multipart.Chunk]
+        chunks: [StorageChunk]
     ) async throws {
-        //        await memoryStorage.finish(
-        //            multipartId: multipartId,
-        //            key: key,
-        //            chunks: chunks
-        //        )
+        var keys = key.split(separator: "/")
+        let lastKey = keys.removeLast()
+        guard let storage = await find(keys.map(String.init)) else {
+            throw StorageServiceError.invalidKey
+        }
+        try await storage.finishMultipartUpload(
+            key: String(lastKey),
+            multipartId: multipartId,
+            parts: chunks.map {
+                .init(id: $0.chunkId, number: $0.number)
+            }
+        )
     }
 }
