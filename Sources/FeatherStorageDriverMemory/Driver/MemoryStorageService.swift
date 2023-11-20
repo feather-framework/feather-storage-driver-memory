@@ -148,8 +148,7 @@ extension MemoryStorageService: StorageService {
 
     public func create(key: String) async throws {
         let keys = key.split(separator: "/")
-        let storage = await create(keys.map(String.init))
-
+        _ = await create(keys.map(String.init))
     }
 
     public func createMultipartId(
