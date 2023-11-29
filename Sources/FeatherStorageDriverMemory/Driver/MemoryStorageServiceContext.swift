@@ -11,7 +11,7 @@ public struct MemoryStorageServiceContext: ServiceContext {
 
     public init() {}
 
-    public func createDriver() throws -> ServiceDriver {
-        MemoryStorageServiceDriver()
+    public func make() throws -> ServiceBuilder {
+        MemoryStorageServiceBuilder()
     }
 }
