@@ -1,17 +1,17 @@
 //
-//  MemoryStorageServiceContext.swift
+//  MemoryStorageComponentContext.swift
 //  FeatherStorageDriverMemory
 //
 //  Created by Tibor Bodecs on 2023. 01. 16..
 //
 
-import FeatherService
+import FeatherComponent
 
-public struct MemoryStorageServiceContext: ServiceContext {
+public struct MemoryStorageComponentContext: ComponentContext {
 
     public init() {}
 
-    public func make() throws -> ServiceBuilder {
-        MemoryStorageServiceBuilder()
+    public func make() throws -> ComponentBuilder {
+        MemoryStorageComponentBuilder()
     }
 }

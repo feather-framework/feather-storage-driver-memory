@@ -1,35 +1,35 @@
 //
-//  MemoryStorageService.swift
+//  MemoryStorageComponent.swift
 //  FeatherStorageDriverMemory
 //
 //  Created by Tibor Bodecs on 2023. 01. 16..
 //
 
 import NIOCore
-import FeatherService
+import FeatherComponent
 import FeatherStorage
 
 @dynamicMemberLookup
-public struct MemoryStorageService {
+public struct MemoryStorageComponent {
 
     let memoryStorage: MemoryStorage
 
-    public let config: ServiceConfig
+    public let config: ComponentConfig
 
     subscript<T>(
-        dynamicMember keyPath: KeyPath<MemoryStorageServiceContext, T>
+        dynamicMember keyPath: KeyPath<MemoryStorageComponentContext, T>
     ) -> T {
-        let context = config.context as! MemoryStorageServiceContext
+        let context = config.context as! MemoryStorageComponentContext
         return context[keyPath: keyPath]
     }
 
-    init(config: ServiceConfig) {
+    init(config: ComponentConfig) {
         self.config = config
         self.memoryStorage = .init()
     }
 }
 
-private extension MemoryStorageService {
+private extension MemoryStorageComponent {
 
     func create(_ keys: [String]) async -> MemoryStorage {
         var storage = memoryStorage
@@ -62,7 +62,7 @@ private extension MemoryStorageService {
     }
 }
 
-extension MemoryStorageService: StorageService {
+extension MemoryStorageComponent: StorageComponent {
 
     public var availableSpace: UInt64 { .max }
 
@@ -83,14 +83,14 @@ extension MemoryStorageService: StorageService {
 
         guard let buffer = await storage?.get(key: String(lastKey))?.buffer
         else {
-            throw StorageServiceError.invalidKey
+            throw StorageComponentError.invalidKey
         }
         if let range = range {
             var buffer = buffer
             buffer.moveReaderIndex(to: Int(range.lowerBound))
             let length = Int(range.upperBound - range.lowerBound) + 1
             guard let bytes = buffer.readBytes(length: length) else {
-                throw StorageServiceError.invalidBuffer
+                throw StorageComponentError.invalidBuffer
             }
             return .init(bytes: bytes)
         }
@@ -111,7 +111,7 @@ extension MemoryStorageService: StorageService {
     public func copy(key source: String, to destination: String) async throws {
         let sourceKeys = source.split(separator: "/")
         guard let sourceStorage = await find(sourceKeys.map(String.init)) else {
-            throw StorageServiceError.invalidKey
+            throw StorageComponentError.invalidKey
         }
 
         var destinationKeys = destination.split(separator: "/")
@@ -141,7 +141,7 @@ extension MemoryStorageService: StorageService {
         var keys = key.split(separator: "/")
         let lastKey = keys.removeLast()
         guard let storage = await find(keys.map(String.init)) else {
-            throw StorageServiceError.invalidKey
+            throw StorageComponentError.invalidKey
         }
         await storage.remove(key: String(lastKey))
     }
@@ -157,7 +157,7 @@ extension MemoryStorageService: StorageService {
         var keys = key.split(separator: "/")
         let lastKey = keys.removeLast()
         guard let storage = await find(keys.map(String.init)) else {
-            throw StorageServiceError.invalidKey
+            throw StorageComponentError.invalidKey
         }
         let id = await storage.createMultipartUpload(key: String(lastKey))
 
@@ -173,7 +173,7 @@ extension MemoryStorageService: StorageService {
         var keys = key.split(separator: "/")
         let lastKey = keys.removeLast()
         guard let storage = await find(keys.map(String.init)) else {
-            throw StorageServiceError.invalidKey
+            throw StorageComponentError.invalidKey
         }
         let chunk = try await storage.addMultipartUploadChunk(
             key: String(lastKey),
@@ -192,7 +192,7 @@ extension MemoryStorageService: StorageService {
         var keys = key.split(separator: "/")
         let lastKey = keys.removeLast()
         guard let storage = await find(keys.map(String.init)) else {
-            throw StorageServiceError.invalidKey
+            throw StorageComponentError.invalidKey
         }
         try await storage.abortMultipartUpload(
             key: String(lastKey),
@@ -208,7 +208,7 @@ extension MemoryStorageService: StorageService {
         var keys = key.split(separator: "/")
         let lastKey = keys.removeLast()
         guard let storage = await find(keys.map(String.init)) else {
-            throw StorageServiceError.invalidKey
+            throw StorageComponentError.invalidKey
         }
         try await storage.finishMultipartUpload(
             key: String(lastKey),

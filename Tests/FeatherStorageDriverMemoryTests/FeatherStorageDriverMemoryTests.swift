@@ -9,7 +9,7 @@ import NIO
 import Logging
 import Foundation
 import XCTest
-import FeatherService
+import FeatherComponent
 import FeatherStorage
 import FeatherStorageDriverMemory
 import XCTFeatherStorage
@@ -17,8 +17,8 @@ import XCTFeatherStorage
 final class FeatherStorageDriverMemoryTests: XCTestCase {
 
     func testTestDriverUsingTestSuite() async throws {
-        let registry = ServiceRegistry()
-        try await registry.addStorage(MemoryStorageServiceContext())
+        let registry = ComponentRegistry()
+        try await registry.addStorage(MemoryStorageComponentContext())
         try await registry.run()
 
         let storage = try await registry.storage()

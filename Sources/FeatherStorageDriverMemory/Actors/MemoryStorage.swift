@@ -7,7 +7,7 @@
 
 import NIOCore
 
-enum MemoryStorageServiceError: Error {
+enum MemoryStorageComponentError: Error {
     case invalidKey
     case invalidMultipartId
     case invalidMultipartChunks
@@ -74,21 +74,21 @@ final actor MemoryStorage {
 
     private func addMultipartChunk(_ id: String, _ chunk: Chunk) throws {
         guard multiparts[id] != nil else {
-            throw MemoryStorageServiceError.invalidMultipartId
+            throw MemoryStorageComponentError.invalidMultipartId
         }
         multiparts[id]!.append(chunk)
     }
 
     private func removeMultipart(_ id: String) throws {
         guard multiparts[id] != nil else {
-            throw MemoryStorageServiceError.invalidMultipartId
+            throw MemoryStorageComponentError.invalidMultipartId
         }
         multiparts[id] = nil
     }
 
     private func getMultipartChunks(_ id: String) throws -> [Chunk] {
         guard multiparts[id] != nil else {
-            throw MemoryStorageServiceError.invalidMultipartId
+            throw MemoryStorageComponentError.invalidMultipartId
         }
         return multiparts[id]!
     }
@@ -146,7 +146,7 @@ final actor MemoryStorage {
         let chunkId = String.random()
         let chunk = Chunk(id: chunkId, number: number, buffer: buffer)
         guard let storage = await get(key: key) else {
-            throw MemoryStorageServiceError.invalidKey
+            throw MemoryStorageComponentError.invalidKey
         }
         try await storage.addMultipartChunk(multipartId, chunk)
         return chunk
@@ -157,7 +157,7 @@ final actor MemoryStorage {
         multipartId: String
     ) async throws {
         guard let storage = await get(key: key) else {
-            throw MemoryStorageServiceError.invalidKey
+            throw MemoryStorageComponentError.invalidKey
         }
         try await storage.removeMultipart(multipartId)
     }
@@ -168,7 +168,7 @@ final actor MemoryStorage {
         parts: [Part]
     ) async throws {
         guard let storage = await get(key: key) else {
-            throw MemoryStorageServiceError.invalidKey
+            throw MemoryStorageComponentError.invalidKey
         }
         let parts = try await storage.getMultipartChunks(multipartId)
         let chunkIds = parts.map { $0.id }
@@ -180,7 +180,7 @@ final actor MemoryStorage {
             .sorted(by: { $0.number < $1.number })
 
         guard parts.count == finalParts.count else {
-            throw MemoryStorageServiceError.invalidMultipartChunks
+            throw MemoryStorageComponentError.invalidMultipartChunks
         }
 
         var buffer = ByteBuffer()

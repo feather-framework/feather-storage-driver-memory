@@ -1,17 +1,17 @@
 //
-//  MemoryStorageServiceBuilder.swift
+//  MemoryStorageComponentBuilder.swift
 //  FeatherStorageDriverMemory
 //
 //  Created by Tibor Bodecs on 2023. 01. 16..
 //
 
-import FeatherService
+import FeatherComponent
 
-struct MemoryStorageServiceBuilder: ServiceBuilder {
+struct MemoryStorageComponentBuilder: ComponentBuilder {
 
     func build(
-        using config: ServiceConfig
-    ) throws -> Service {
-        MemoryStorageService(config: config)
+        using config: ComponentConfig
+    ) throws -> Component {
+        MemoryStorageComponent(config: config)
     }
 }
