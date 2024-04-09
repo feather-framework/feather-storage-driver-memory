@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "feather-storage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/feather-framework/feather-storage.git",
+      "state" : {
+        "revision" : "c30a691516cf8b2956116f00732b99c639083af8",
+        "version" : "0.5.0"
+      }
+    },
+    {
       "identity" : "swift-atomics",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",
