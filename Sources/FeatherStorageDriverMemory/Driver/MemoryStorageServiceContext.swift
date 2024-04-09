@@ -11,7 +11,7 @@ public struct MemoryStorageComponentContext: ComponentContext {
 
     public init() {}
 
-    public func make() throws -> ComponentBuilder {
-        MemoryStorageComponentBuilder()
+    public func make() throws -> ComponentFactory {
+        MemoryStorageComponentFactory()
     }
 }

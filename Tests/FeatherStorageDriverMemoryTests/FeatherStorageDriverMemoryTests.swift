@@ -19,17 +19,9 @@ final class FeatherStorageDriverMemoryTests: XCTestCase {
     func testTestDriverUsingTestSuite() async throws {
         let registry = ComponentRegistry()
         try await registry.addStorage(MemoryStorageComponentContext())
-        try await registry.run()
 
         let storage = try await registry.storage()
         let suite = StorageTestSuite(storage)
-        do {
-            try await suite.testAll()
-            try await registry.shutdown()
-        }
-        catch {
-            try await registry.shutdown()
-            throw error
-        }
+        try await suite.testAll()
     }
 }
