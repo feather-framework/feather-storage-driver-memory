@@ -5,9 +5,9 @@
 //  Created by Tibor Bodecs on 2023. 01. 16..
 //
 
-import NIOCore
 import FeatherComponent
 import FeatherStorage
+import NIOCore
 
 @dynamicMemberLookup
 public struct MemoryStorageComponent {
@@ -29,9 +29,9 @@ public struct MemoryStorageComponent {
     }
 }
 
-private extension MemoryStorageComponent {
+extension MemoryStorageComponent {
 
-    func create(_ keys: [String]) async -> MemoryStorage {
+    fileprivate func create(_ keys: [String]) async -> MemoryStorage {
         var storage = memoryStorage
         for k in keys {
             if await storage.get(key: String(k)) == nil {
@@ -42,7 +42,7 @@ private extension MemoryStorageComponent {
         return storage
     }
 
-    func find(_ keys: [String]) async -> MemoryStorage? {
+    fileprivate func find(_ keys: [String]) async -> MemoryStorage? {
         var storage = memoryStorage
         for k in keys {
             guard let s = await storage.get(key: String(k)) else {
@@ -53,7 +53,7 @@ private extension MemoryStorageComponent {
         return storage
     }
 
-    func find(_ key: String?) async -> MemoryStorage? {
+    fileprivate func find(_ key: String?) async -> MemoryStorage? {
         guard let key else {
             return memoryStorage
         }

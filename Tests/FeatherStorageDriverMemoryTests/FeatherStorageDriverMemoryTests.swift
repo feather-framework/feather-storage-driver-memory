@@ -5,14 +5,14 @@
 //  Created by Tibor Bodecs on 2023. 01. 16..
 //
 
-import NIO
-import Logging
-import Foundation
-import XCTest
 import FeatherComponent
 import FeatherStorage
 import FeatherStorageDriverMemory
+import Foundation
+import Logging
+import NIO
 import XCTFeatherStorage
+import XCTest
 
 final class FeatherStorageDriverMemoryTests: XCTestCase {
 
