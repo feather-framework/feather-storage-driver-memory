@@ -22,10 +22,6 @@ public struct MemoryStorageComponent {
         let context = config.context as! MemoryStorageComponentContext
         return context[keyPath: keyPath]
     }
-
-    init(config: ComponentConfig) {
-        self.config = config
-    }
 }
 
 extension MemoryStorageComponent {
