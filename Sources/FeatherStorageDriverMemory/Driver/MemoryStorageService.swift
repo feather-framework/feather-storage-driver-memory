@@ -12,7 +12,7 @@ import NIOCore
 @dynamicMemberLookup
 public struct MemoryStorageComponent {
 
-    let memoryStorage: MemoryStorage
+    static let memoryStorage: MemoryStorage = .init()
 
     public let config: ComponentConfig
 
@@ -22,17 +22,12 @@ public struct MemoryStorageComponent {
         let context = config.context as! MemoryStorageComponentContext
         return context[keyPath: keyPath]
     }
-
-    init(config: ComponentConfig) {
-        self.config = config
-        self.memoryStorage = .init()
-    }
 }
 
 extension MemoryStorageComponent {
 
     fileprivate func create(_ keys: [String]) async -> MemoryStorage {
-        var storage = memoryStorage
+        var storage = Self.memoryStorage
         for k in keys {
             if await storage.get(key: String(k)) == nil {
                 await storage.add(key: String(k), value: nil)
@@ -43,7 +38,7 @@ extension MemoryStorageComponent {
     }
 
     fileprivate func find(_ keys: [String]) async -> MemoryStorage? {
-        var storage = memoryStorage
+        var storage = Self.memoryStorage
         for k in keys {
             guard let s = await storage.get(key: String(k)) else {
                 return nil
@@ -55,7 +50,7 @@ extension MemoryStorageComponent {
 
     fileprivate func find(_ key: String?) async -> MemoryStorage? {
         guard let key else {
-            return memoryStorage
+            return Self.memoryStorage
         }
         let keys = key.split(separator: "/")
         return await find(keys.map(String.init))
@@ -105,7 +100,7 @@ extension MemoryStorageComponent: StorageComponent {
     }
 
     public func size(key: String) async -> UInt64 {
-        .init(await memoryStorage.get(key: key)?.size() ?? 0)
+        .init(await find(key)?.size() ?? 0)
     }
 
     public func copy(key source: String, to destination: String) async throws {

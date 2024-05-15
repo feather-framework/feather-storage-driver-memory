@@ -170,12 +170,12 @@ final actor MemoryStorage {
         guard let storage = await get(key: key) else {
             throw MemoryStorageComponentError.invalidKey
         }
-        let parts = try await storage.getMultipartChunks(multipartId)
-        let chunkIds = parts.map { $0.id }
-        let numbers = parts.map { $0.number }
+        let allParts = try await storage.getMultipartChunks(multipartId)
         let finalParts =
-            parts.filter {
-                chunkIds.contains($0.id) && numbers.contains($0.number)
+            allParts.filter { p in
+                parts.contains {
+                    p.id == $0.id && p.number == $0.number
+                }
             }
             .sorted(by: { $0.number < $1.number })
 
