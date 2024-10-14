@@ -14,7 +14,8 @@ let package = Package(
         .library(name: "FeatherStorageDriverMemory", targets: ["FeatherStorageDriverMemory"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/feather-framework/feather-storage.git", .upToNextMinor(from: "0.5.0")),
+//        .package(url: "https://github.com/feather-framework/feather-storage.git", .upToNextMinor(from: "0.5.0")),
+        .package(url: "https://github.com/feather-framework/feather-storage.git", branch: "feature/async-iterator"),
     ],
     targets: [
         .target(

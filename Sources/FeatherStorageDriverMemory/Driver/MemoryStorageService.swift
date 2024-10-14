@@ -57,20 +57,44 @@ extension MemoryStorageComponent {
     }
 }
 
+struct MemoryByteBufferAsyncSequenceWrapper: AsyncSequence {
+    typealias Element = ByteBuffer
+    let buffer: ByteBuffer
+
+    struct AsyncIterator: AsyncIteratorProtocol {
+        var buffer: ByteBuffer?
+
+        mutating func next() async -> ByteBuffer? {
+            let ret = buffer
+            buffer = nil
+            return ret
+        }
+    }
+
+    func makeAsyncIterator() -> AsyncIterator {
+        AsyncIterator(buffer: (buffer.readableBytes > 0 ? buffer : nil))
+    }
+}
+
 extension MemoryStorageComponent: StorageComponent {
 
     public var availableSpace: UInt64 { .max }
 
-    public func upload(key: String, buffer: ByteBuffer) async throws {
+    public func uploadStream(
+        key: String,
+        sequence: StorageAnyAsyncSequence<ByteBuffer>
+    ) async throws {
         var keys = key.split(separator: "/")
         let lastKey = keys.removeLast()
         let storage = await create(keys.map(String.init))
-        await storage.add(key: String(lastKey), value: buffer)
-
+        await storage.add(
+            key: String(lastKey),
+            value: try sequence.collect(upTo: Int.max)
+        )
     }
 
-    public func download(key: String, range: ClosedRange<Int>?)
-        async throws -> ByteBuffer
+    public func downloadStream(key: String, range: ClosedRange<Int>?)
+        async throws -> StorageAnyAsyncSequence<ByteBuffer>
     {
         var keys = key.split(separator: "/")
         let lastKey = keys.removeLast()
@@ -87,9 +111,18 @@ extension MemoryStorageComponent: StorageComponent {
             guard let bytes = buffer.readBytes(length: length) else {
                 throw StorageComponentError.invalidBuffer
             }
-            return .init(bytes: bytes)
+            return .init(
+                asyncSequence: MemoryByteBufferAsyncSequenceWrapper(
+                    buffer: .init(bytes: bytes)
+                ),
+                length: UInt64(length)
+            )
+
         }
-        return buffer
+        return .init(
+            asyncSequence: MemoryByteBufferAsyncSequenceWrapper(buffer: buffer),
+            length: UInt64(buffer.readableBytes)
+        )
     }
 
     public func exists(key: String) async -> Bool {
@@ -159,12 +192,12 @@ extension MemoryStorageComponent: StorageComponent {
         return id
     }
 
-    public func upload(
+    public func uploadStream(
         multipartId: String,
         key: String,
         number: Int,
-        buffer: ByteBuffer
-    ) async throws -> StorageChunk {
+        sequence: StorageAnyAsyncSequence<ByteBuffer>
+    ) async throws -> FeatherStorage.StorageChunk {
         var keys = key.split(separator: "/")
         let lastKey = keys.removeLast()
         guard let storage = await find(keys.map(String.init)) else {
@@ -174,7 +207,7 @@ extension MemoryStorageComponent: StorageComponent {
             key: String(lastKey),
             multipartId: multipartId,
             number: number,
-            buffer: buffer
+            buffer: sequence.collect(upTo: Int.max)
         )
 
         return .init(chunkId: chunk.id, number: chunk.number)
