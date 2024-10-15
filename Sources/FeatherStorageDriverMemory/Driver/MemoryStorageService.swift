@@ -57,25 +57,6 @@ extension MemoryStorageComponent {
     }
 }
 
-struct MemoryByteBufferAsyncSequenceWrapper: AsyncSequence {
-    typealias Element = ByteBuffer
-    let buffer: ByteBuffer
-
-    struct AsyncIterator: AsyncIteratorProtocol {
-        var buffer: ByteBuffer?
-
-        mutating func next() async -> ByteBuffer? {
-            let ret = buffer
-            buffer = nil
-            return ret
-        }
-    }
-
-    func makeAsyncIterator() -> AsyncIterator {
-        AsyncIterator(buffer: (buffer.readableBytes > 0 ? buffer : nil))
-    }
-}
-
 extension MemoryStorageComponent: StorageComponent {
 
     public var availableSpace: UInt64 { .max }
@@ -112,7 +93,7 @@ extension MemoryStorageComponent: StorageComponent {
                 throw StorageComponentError.invalidBuffer
             }
             return .init(
-                asyncSequence: MemoryByteBufferAsyncSequenceWrapper(
+                asyncSequence: StorageByteBufferAsyncSequenceWrapper(
                     buffer: .init(bytes: bytes)
                 ),
                 length: UInt64(length)
@@ -120,7 +101,7 @@ extension MemoryStorageComponent: StorageComponent {
 
         }
         return .init(
-            asyncSequence: MemoryByteBufferAsyncSequenceWrapper(buffer: buffer),
+            asyncSequence: StorageByteBufferAsyncSequenceWrapper(buffer: buffer),
             length: UInt64(buffer.readableBytes)
         )
     }
