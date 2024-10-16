@@ -101,7 +101,9 @@ extension MemoryStorageComponent: StorageComponent {
 
         }
         return .init(
-            asyncSequence: StorageByteBufferAsyncSequenceWrapper(buffer: buffer),
+            asyncSequence: StorageByteBufferAsyncSequenceWrapper(
+                buffer: buffer
+            ),
             length: UInt64(buffer.readableBytes)
         )
     }
